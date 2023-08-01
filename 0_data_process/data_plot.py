@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List
+from typing import Tuple
 from switches_exceptions import *
 reload(sys.modules['switches_exceptions'])
 from switches_exceptions import *
@@ -22,12 +22,12 @@ class DataPlot:
         self.switches_id_todo = self.run_exceptions(switches_id_todo)
 
     def run_exceptions(self, switches_id_todo: List[int]):
-        """Run exceptions on the list with the switches ID.
-            Parameters:
-                switches_id_todo: List of the IDs of the switches to do
-            Returns:
-                switches_id_todo: List of the IDs of the switches to do post-exceptions.
         """
+        Run exceptions on the list with the switches ID.
+        :param switches_id_todo: List of the IDs of the switches to do
+        :return: switches_id_todo: List of the IDs of the switches to do post-exceptions.
+        """
+
         while True:
             try:
                 if not all(isinstance(ii, int) for ii in switches_id_todo):
@@ -44,10 +44,8 @@ class DataPlot:
 
     def plot_switches(self):
         """Do plots.
-            Parameters:
-            Returns:
-                None
         """
+
         fig, ax = plt.subplots(nrows=2, ncols=1, dpi=100, figsize=(8, 12))
         legend_cols = ["#648ace", "#c2843c", "#ab62c0", "#6ca659", "#ca556a"]
 
@@ -59,25 +57,25 @@ class DataPlot:
 
                 ax[idx0].plot(switch_data[:, 1], switch_data[:, 0], color=legend_cols[idx1],
                               lw=2)
-
             self.work_figure(ax[idx0], fig, figure_switches_names, mode)
 
     @staticmethod
     def work_figure(ax, fig, figure_switches_names, mode):
-        """Works on the figure and axis handle.
-            Parameters:
-                ax: Figure axis
-                fig: Figure handle
-                figure_switches_names: List with names of the plotted switches
-                mode: Downstroke/Upstroke
-            Returns:
-                None
+        """ Works on the figure and axis handle.
+            :param ax: Figure axis
+            :param fig: Figure handle
+            :param figure_switches_names: List with names of the plotted switches
+            :param mode: Downstroke/Upstroke
         """
+
         ax.set_xlabel('Displacement (mm)', fontsize=13)
         ax.set_ylabel('Force (gf)', fontsize=13)
         ax.set_title('Force Curves, {}'.format(mode), fontsize=14)
         ax.set_xlim([-.2, 4])
         ax.set_ylim([0, 200])
+        ax.set_yticks(np.arange(stop=201, step=20))
+        ax.set_xticks(np.arange(stop=4.01, step=1))
+        ax.grid(True)
         fig.patch.set_facecolor('gray')
         fig.patch.set_alpha(.4)
 
@@ -90,14 +88,13 @@ class DataPlot:
         return
 
     def get_switch_data(self, idx: int, mode: str) -> np.ndarray:
-        """Return array with force and displacement data for the particular switch
-            and mode.
-            Parameters:
-                idx: switch id
-                mode: 'Downstroke'/'Upstroke'
-            Return:
-                Array with force and displacement data for the switch to be plotted.
         """
+        Return array with force and displacement data for the particular switch and mode.
+        :param idx: switch id
+        :param mode: 'Downstroke'/'Upstroke'
+        :return: Array with force and displacement data for the switch to be plotted.
+        """
+
         _query = """SELECT force, displacement
                     FROM force_curves
                     WHERE switch_name = ? AND mode = ?"""
@@ -109,12 +106,11 @@ class DataPlot:
         return arr
 
     def all_switches_dic(self) -> dict[int, str]:
-        """Return dictionary with keys an id and values the name of the switch
-            for all switches.
-            Parameters:
-            Returns:
-                Dictionary with keys the index, and values the name of the switch.
         """
+        Return dictionary with keys an id and values the name of the switch for all switches.
+        :return: Dictionary with keys the index, and values the name of the switch.
+        """
+
         switch_names = self.get_all_switch_names()
         # Index for the switches
         idx = list(range(1, len(switch_names) + 1))
@@ -123,30 +119,28 @@ class DataPlot:
         return dic
 
     def get_all_switch_names(self) -> List[str]:
-        """Return all switch names in the db.
-            Parameters:
-            Returns:
-                List with all switch names in the list.
         """
+        Return all switch names in the db.
+        :return: List with all switch names in the list.
+        """
+
         _query = 'SELECT DISTINCT(switch_name) FROM force_curves'
         df = pd.read_sql_query(_query, self.conn)
-
         switch_names_list = list(df.iloc[:, 0])
 
         return switch_names_list
 
     @staticmethod
-    def connect_db():
-        """Return connection and cursor of the SQL table.
-            Parameters:
-            Returns:
-                Tuple with SQL connection and cursor
+    def connect_db() -> Tuple:
         """
+        Return connection and cursor of the SQL table
+        :return: SQL connection and cursor
+        """
+
         if os.path.isfile('./force_curves'):
             conn = sqlite3.connect('./force_curves')
             return conn, conn.cursor()
         else:
             print('Could not find db, do not bother')
-
         return
 

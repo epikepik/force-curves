@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import pandas as pd
+from typing import List, Dict
 
 
 class DataProcess:
@@ -30,13 +31,14 @@ class DataProcess:
 
     @staticmethod
     def add_switch_data_to_table(conn, dic):
-        """Append switch data to SQL table.
+        """
+        Append switch data to SQL table.
+        :param conn: Connection to SQL table
+        :param dic: Dictionary with data with keys ['Downstroke', 'Upstroke'] and
+                values dataframe with columns ['force', 'displacement', 'switch_name', 'mode']
+        :return
+        """
 
-            Parameters:
-                conn: Connection to SQL table
-                dic: Dictionary with data with keys ['Downstroke', 'Upstroke'] and
-                values dataframe with columns ['force', 'displacement', 'switch_name', 'mode'].
-            """
         for kk, df in dic.items():
             print('Doing {} for {}'.format(df['switch_name'][0], df['mode'][0]))
             df.to_sql('force_curves', conn, if_exists='append', index=False)
@@ -44,18 +46,18 @@ class DataProcess:
         return
 
     @staticmethod
-    def read_excel_data_file(file_path) -> dict:
-        """Return dictionary with data.
-
-            Parameters:
-
-            Returns:
-                Returns dictionary with keys ['Downstroke', 'Upstroke'] and values dataframe
-                with columns ['Force', 'Displacement', 'Switch_Name', 'Mode']
+    def read_excel_data_file(file_path: str) -> Dict:
         """
-        # Get name of switch
+        Return dictionary with data.
+        :param file_path: Path of the Excel file with data
+        :return: Returns dictionary with keys ['Downstroke', 'Upstroke'] and values dataframe
+                 with columns ['Force', 'Displacement', 'Switch_Name', 'Mode']
+        """
+
+        # File to df
         df = pd.read_excel(file_path, header=None, usecols='B', skiprows=1,
                            sheet_name=['DataTable'])
+        # Get name of switch
         switch_name = df['DataTable'].iloc[0, 0]
 
         # Get dictionary with data from Excel. Keys are Downstroke, Upstroke
@@ -72,16 +74,21 @@ class DataProcess:
         return data_dic
 
     def create_table(self):
-        """Create SQL table."""
+        """
+        Create SQL table.
+
+        :return: None
+        """
+
         conn, cur = self.create_conn()
 
         cur.execute(""" DROP TABLE IF EXISTS force_curves """)
 
         _sql = """ CREATE TABLE force_curves(
-                    force CHAR(100),
-                    displacement CHAR(100),
-                    switch_name CHAR(100),
-                    mode CHAR(100))
+                    switch_name VARCHAR(100),
+                    force REAL,
+                    displacement REAL,
+                    mode VARCHAR(100))
                     """
 
         cur.execute(_sql)
@@ -90,12 +97,12 @@ class DataProcess:
 
     @staticmethod
     def create_conn():
-        """Return connection and cursor of the SQL table.
-
-            Parameters:
-            Returns:
-                Tuple with SQL connection and cursor
         """
+        Return connection and cursor of the SQL table.
+
+        :return: Tuple with SQL connection and cursor
+        """
+
         conn = None
         try:
             conn = sqlite3.connect('force_curves')
@@ -106,12 +113,12 @@ class DataProcess:
         return
 
     def rummage_through(self) -> list[str]:
-        """Return a list with the file paths of all switch data files.
-
-        Parameters:
-        Returns:
-            List with file paths of all data files
         """
+        Return a list with the file paths of all switch data files.
+
+        :return: List with file paths of all data files
+        """
+
         file_paths = []
         switches_directories = self.get_switches_directories()
 
@@ -121,14 +128,14 @@ class DataProcess:
         return file_paths
 
     @staticmethod
-    def get_files_name(switch_dir: str) -> list[str]:
-        """Return a list with the file paths of switch data in the specific directory.
-
-        Parameters:
-            switch_dir: Name of directory for the specific switch
-        Returns:
-            List with file paths with switch data in the directory
+    def get_files_name(switch_dir: str) -> List[str]:
         """
+        Return a list with the file paths of switch data in the specific directory.
+
+        :param switch_dir: Name of directory for the specific switch
+        :return: List with the file paths with switch data in the directory
+        """
+
         # Find all the files in the dir and create a list with the one that hold the raw data
         # Might be more than one.
         files_in_folder = os.listdir(switch_dir)
@@ -141,12 +148,11 @@ class DataProcess:
 
     @staticmethod
     def get_switches_directories() -> list[str]:
-        """Return a list with the directories of all switches.
+        """
+        Return a list with the directories for every switch
 
-        Parameters:
-        Returns:
-                List with the directories of all switches
-            """
+        :return: List with the directories for every switch
+        """
         directory_names = [ii[0] for ii in os.walk('../')]
         # Remove hidden directories and current directory
         directory_names = [ii for ii in directory_names if (
