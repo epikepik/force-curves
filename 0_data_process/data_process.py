@@ -105,7 +105,7 @@ class DataProcess:
 
         conn = None
         try:
-            conn = sqlite3.connect('force_curves')
+            conn = sqlite3.connect('force_curves.db')
             return conn, conn.cursor()
         except Exception as E:
             print(E)

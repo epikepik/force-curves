@@ -59,6 +59,8 @@ class DataPlot:
                               lw=2)
             self.work_figure(ax[idx0], fig, figure_switches_names, mode)
 
+        plt.savefig('force_curves.png', format='png', dpi=150)
+
     @staticmethod
     def work_figure(ax, fig, figure_switches_names, mode):
         """ Works on the figure and axis handle.
@@ -137,8 +139,8 @@ class DataPlot:
         :return: SQL connection and cursor
         """
 
-        if os.path.isfile('./force_curves'):
-            conn = sqlite3.connect('./force_curves')
+        if os.path.isfile('./force_curves.db'):
+            conn = sqlite3.connect('./force_curves.db')
             return conn, conn.cursor()
         else:
             print('Could not find db, do not bother')
